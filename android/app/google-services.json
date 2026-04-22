@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "486107231914",
+    "project_id": "fahim-9c21d",
+    "storage_bucket": "fahim-9c21d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486107231914:android:198fab1f032d640e9c82d3",
+        "android_client_info": {
+          "package_name": "com.FahimMinWorks.fi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSHFR4HY4ruB6Fz__YYQNa7o53wQ3RY_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:486107231914:android:2de731da2bf7ada39c82d3",
+        "android_client_info": {
+          "package_name": "com.example.fi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSHFR4HY4ruB6Fz__YYQNa7o53wQ3RY_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
