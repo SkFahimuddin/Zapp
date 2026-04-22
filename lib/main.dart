@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/constants/colors.dart';
+import 'features/auth/screens/login_screen.dart';
 import 'firebase_options.dart';
 import 'router.dart';
 
@@ -26,14 +27,7 @@ class FiApp extends StatelessWidget {
         appBarTheme: const AppBarTheme(backgroundColor: appBarColor),
       ),
       onGenerateRoute: (settings) => generateRoute(settings),
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Fi 💬',
-            style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ),
+      home: const LoginScreen(),
     );
   }
 }

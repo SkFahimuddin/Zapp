@@ -1,4 +1,4 @@
-name: fi
+name: Fi
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -35,6 +35,7 @@ dependencies:
   cloud_firestore: ^5.0.0
   firebase_storage: ^12.0.0
   flutter_riverpod: ^2.5.0
+  image_picker: ^1.1.0
 
 dev_dependencies:
   flutter_test:
