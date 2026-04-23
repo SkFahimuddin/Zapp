@@ -39,7 +39,7 @@ class FiApp extends StatelessWidget {
               ),
             );
           }
-          if (snapshot.hasData) {
+          if (snapshot.hasData && snapshot.data != null) {
             return const ChatListScreen();
           }
           return const LoginScreen();
