@@ -45,6 +45,29 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     }
   }
 
+  Future<void> _sendNotification(String receiverId, String message) async {
+    try {
+      var receiverDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(receiverId)
+          .get();
+
+      String? token = receiverDoc.data()?['fcmToken'];
+      if (token == null) return;
+
+      await FirebaseFirestore.instance.collection('notifications').add({
+        'token': token,
+        'title': currentUser.displayName ?? 'Fi',
+        'body': message,
+        'senderId': currentUser.uid,
+        'receiverId': receiverId,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      });
+    } catch (e) {
+      // silently fail
+    }
+  }
+
   void sendMessage() async {
     String text = messageController.text.trim();
     if (text.isEmpty) return;
@@ -68,6 +91,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     messageController.clear();
     setState(() => isTyping = false);
 
+    // Save to my chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -77,6 +101,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
+    // Save to receiver's chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -86,6 +111,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
+    // Update last message for me
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -99,6 +125,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'profilePic': widget.profilePic,
     });
 
+    // Update last message for receiver
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -111,6 +138,9 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'name': currentUser.displayName ?? 'User',
       'profilePic': currentUser.photoURL ?? '',
     });
+
+    // Send notification
+    await _sendNotification(widget.uid, text);
 
     scrollToBottom();
   }
@@ -159,8 +189,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                 ),
                 const Text(
                   'tap for info',
-                  style: TextStyle(
-                      color: Colors.white54, fontSize: 11),
+                  style: TextStyle(color: Colors.white54, fontSize: 11),
                 ),
               ],
             ),
@@ -257,7 +286,9 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isMe ? const Color(0xFF005C4B) : const Color(0xFF1F2C34),
+          color: isMe
+              ? const Color(0xFF005C4B)
+              : const Color(0xFF1F2C34),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
             topRight: const Radius.circular(12),
@@ -325,8 +356,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Message',
-                  hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.3)),
+                  hintStyle:
+                      TextStyle(color: Colors.white.withOpacity(0.3)),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 10),
@@ -341,9 +372,9 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
               duration: const Duration(milliseconds: 200),
               width: 46,
               height: 46,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00A884),
+                color: Color(0xFF00A884),
               ),
               child: Icon(
                 isTyping ? Icons.send : Icons.mic,

@@ -37,6 +37,8 @@ dependencies:
   flutter_riverpod: ^2.5.0
   image_picker: ^1.1.0
   uuid: ^4.3.3 
+  firebase_messaging: ^15.0.0        # add this
+  flutter_local_notifications: ^17.0.0 
 
 dev_dependencies:
   flutter_test:
