@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'core/constants/colors.dart';
 import 'core/utils/notification_service.dart';
 import 'features/auth/screens/login_screen.dart';
@@ -16,6 +17,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // OneSignal
+  OneSignal.initialize("38032652-4808-40e0-bbca-9c60ff97a5e7");
+  OneSignal.Notifications.requestPermission(true);
+
   runApp(const ProviderScope(child: FiApp()));
 }
 
@@ -28,16 +34,6 @@ class FiApp extends StatefulWidget {
 
 class _FiAppState extends State<FiApp> {
   final NotificationService _notificationService = NotificationService();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (FirebaseAuth.instance.currentUser != null) {
-        _notificationService.initialize(context);
-      }
-    });
-  }
 
   @override
   Widget build(BuildContext context) {

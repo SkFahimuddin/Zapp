@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -39,7 +40,6 @@ class NotificationService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> initialize(BuildContext context) async {
-    // Request permission
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -47,30 +47,26 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      // Initialize local notifications
       const AndroidInitializationSettings androidSettings =
           AndroidInitializationSettings('@mipmap/ic_launcher');
       const InitializationSettings initSettings =
           InitializationSettings(android: androidSettings);
       await flutterLocalNotificationsPlugin.initialize(initSettings);
 
-      // Get FCM token and save to Firestore
       await _saveToken();
 
-      // Handle foreground messages
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         showLocalNotification(message);
       });
 
-      // Handle background messages
       FirebaseMessaging.onBackgroundMessage(
           firebaseMessagingBackgroundHandler);
 
-      // Handle notification tap when app is in background
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        // navigate to chat when notification is tapped
-      });
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {});
     }
+
+    // Save OneSignal ID to Firestore
+    await _saveOneSignalId();
   }
 
   Future<void> _saveToken() async {
@@ -82,7 +78,6 @@ class NotificationService {
           .update({'fcmToken': token});
     }
 
-    // Refresh token listener
     _messaging.onTokenRefresh.listen((newToken) async {
       if (_auth.currentUser != null) {
         await _firestore
@@ -91,5 +86,19 @@ class NotificationService {
             .update({'fcmToken': newToken});
       }
     });
+  }
+
+  Future<void> _saveOneSignalId() async {
+    try {
+      final onesignalId = await OneSignal.User.getOnesignalId();
+      if (onesignalId != null && _auth.currentUser != null) {
+        await _firestore
+            .collection('users')
+            .doc(_auth.currentUser!.uid)
+            .update({'onesignalId': onesignalId});
+      }
+    } catch (e) {
+      // silently fail
+    }
   }
 }

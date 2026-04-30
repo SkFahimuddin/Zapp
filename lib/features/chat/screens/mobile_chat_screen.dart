@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/colors.dart';
 import '../../../models/message.dart';
@@ -52,17 +54,31 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
           .doc(receiverId)
           .get();
 
-      String? token = receiverDoc.data()?['fcmToken'];
-      if (token == null) return;
+      String? onesignalId = receiverDoc.data()?['onesignalId'];
+      if (onesignalId == null) return;
 
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'token': token,
-        'title': currentUser.displayName ?? 'Fi',
-        'body': message,
-        'senderId': currentUser.uid,
-        'receiverId': receiverId,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      });
+      var senderDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+      String senderName = senderDoc.data()?['name'] ?? 'Fi';
+
+      await http.post(
+        Uri.parse('https://onesignal.com/api/v1/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'os_v2_app_habsmusibbaobo6ktrqp7f5f44tm5dkkkm5e7mupod37cnlconpbsnfoq4tzahowsbsvaqroq47hkjhir5zvwzbn3vmm2o6vqqz7kbq',
+        },
+        body: jsonEncode({
+          'app_id': '38032652-4808-40e0-bbca-9c60ff97a5e7',
+          'include_aliases': {
+            'onesignal_id': [onesignalId]
+          },
+          'target_channel': 'push',
+          'headings': {'en': senderName},
+          'contents': {'en': message},
+        }),
+      );
     } catch (e) {
       // silently fail
     }
@@ -91,7 +107,6 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     messageController.clear();
     setState(() => isTyping = false);
 
-    // Save to my chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -101,7 +116,6 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
-    // Save to receiver's chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -111,7 +125,6 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
-    // Update last message for me
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -125,7 +138,6 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'profilePic': widget.profilePic,
     });
 
-    // Update last message for receiver
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -139,9 +151,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'profilePic': currentUser.photoURL ?? '',
     });
 
-    // Send notification
     await _sendNotification(widget.uid, text);
-
     scrollToBottom();
   }
 
