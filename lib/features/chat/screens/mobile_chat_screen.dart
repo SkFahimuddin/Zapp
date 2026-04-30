@@ -107,6 +107,15 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     messageController.clear();
     setState(() => isTyping = false);
 
+    // Get sender info from Firestore
+    var myDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUser.uid)
+        .get();
+    String senderName = myDoc.data()?['name'] ?? 'User';
+    String senderPic = myDoc.data()?['profilePic'] ?? '';
+
+    // Save to my chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -116,6 +125,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
+    // Save to receiver's chat
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -125,6 +135,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         .doc(messageId)
         .set(message.toMap());
 
+    // Update last message for me
     await FirebaseFirestore.instance
         .collection('users')
         .doc(currentUser.uid)
@@ -138,6 +149,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'profilePic': widget.profilePic,
     });
 
+    // Update last message for receiver
     await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.uid)
@@ -147,8 +159,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
       'lastMessage': text,
       'timeSent': now.millisecondsSinceEpoch,
       'contactId': currentUser.uid,
-      'name': currentUser.displayName ?? 'User',
-      'profilePic': currentUser.photoURL ?? '',
+      'name': senderName,
+      'profilePic': senderPic,
     });
 
     await _sendNotification(widget.uid, text);
@@ -158,6 +170,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: const Color(0xFF0B141A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1F2C34),
@@ -244,7 +257,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.lock_outline,
-                            color: Colors.white.withOpacity(0.2), size: 40),
+                            color: Colors.white.withOpacity(0.2),
+                            size: 40),
                         const SizedBox(height: 12),
                         Text(
                           'Messages are end-to-end encrypted',
@@ -275,7 +289,12 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
               },
             ),
           ),
-          _buildMessageInput(),
+          Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).padding.bottom,
+            ),
+            child: _buildMessageInput(),
+          ),
         ],
       ),
     );
@@ -294,7 +313,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
           left: isMe ? 60 : 0,
           right: isMe ? 0 : 60,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isMe
               ? const Color(0xFF005C4B)
@@ -311,7 +331,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
           children: [
             Text(
               msg.text,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style:
+                  const TextStyle(color: Colors.white, fontSize: 15),
             ),
             const SizedBox(height: 4),
             Row(
@@ -320,7 +341,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                 Text(
                   timeStr,
                   style: TextStyle(
-                      color: Colors.white.withOpacity(0.5), fontSize: 11),
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 11),
                 ),
                 if (isMe) ...[
                   const SizedBox(width: 4),
@@ -366,8 +388,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                 },
                 decoration: InputDecoration(
                   hintText: 'Message',
-                  hintStyle:
-                      TextStyle(color: Colors.white.withOpacity(0.3)),
+                  hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.3)),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16, vertical: 10),
