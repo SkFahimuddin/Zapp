@@ -120,7 +120,7 @@ class _SelectContactsScreenState extends State<SelectContactsScreen> {
                         doc.data() as Map<String, dynamic>))
                     .where((user) => user.uid != currentUser.uid)
                     .where((user) {
-                  if (searchQuery.isEmpty) return true;
+                  if (searchQuery.isEmpty) return false;
                   return user.name.toLowerCase().contains(searchQuery);
                 }).toList();
 
